@@ -3,10 +3,8 @@ enum Gender {
     female,
 }
 
-
-
-export interface UserData {
+export interface IUserLogIn {
     name: string,
-    weight: number,
-    sex: Gender,
+    password: string,
 }
+
