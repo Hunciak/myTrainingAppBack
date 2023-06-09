@@ -8,3 +8,11 @@ export interface IUserLogIn {
     password: string,
 }
 
+export interface IUserSingUp{
+    name: string,
+    password: string,
+    gender: string,
+    weight: number,
+    height: number,
+}
+
