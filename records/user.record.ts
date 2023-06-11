@@ -25,6 +25,7 @@ export class UserRecord implements IUserSingUp {
 
 
     constructor(obj: IUserSingUp) {
+        console.log('jestem w construktorze')
         if (!obj.name || obj.name.length > 30) {
             throw new ValidationError('Nazwa użytkowanika nie może być pusta, ani przekraczać 30 znaków.')
         }
@@ -47,7 +48,7 @@ export class UserRecord implements IUserSingUp {
     //     const [results] = await pool.execute("SELECT name, level, experience, HP, strength, dexterity, stamina, charisma, PLN   FROM `users` WHERE id = :id", {
     //         id,
     //     }) as UserRecordResult;
-
+    //
     //     return results.length !== 0 ? results[0] : new Error('No data of given id');
     // }
 
