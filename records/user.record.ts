@@ -25,9 +25,10 @@ export class UserRecord implements IUserSingUp {
 
 
     constructor(obj: IUserSingUp) {
-        console.log('jestem w construktorze')
+
         if (!obj.name || obj.name.length > 30) {
             throw new ValidationError('Nazwa użytkowanika nie może być pusta, ani przekraczać 30 znaków.')
+
         }
 
         if (!obj.email || !obj.email.includes('@')) {
@@ -38,9 +39,27 @@ export class UserRecord implements IUserSingUp {
             throw new ValidationError('Hasło użytkownika nie może być puste oraz zawierać od 8 do 30 znaków')
         }
 
+        if (!obj.gender) {
+            throw new ValidationError('Płeć nie może być puste.')
+        }
+
+        if (!obj.weight) {
+            throw new ValidationError('Należy podać wagę!')
+
+        }
+
+        if (!obj.height) {
+            throw new ValidationError('Należy podać wzrost.')
+        }
+
+
+
         this.name = obj.name;
         this.email = obj.email;
         this.password = obj.password;
+        this.gender = obj.gender;
+        this.height = obj.height;
+        this.weight = obj.weight;
 
     }
 
@@ -71,7 +90,7 @@ export class UserRecord implements IUserSingUp {
             throw new Error('Cannot insert something that is already inserted!')
         }
 
-        await pool.execute("INSERT INTO `users`(`id`, `name`, `email`, `password`) VALUES(:id, :name, :email, :password)", this)
+        await pool.execute("INSERT INTO `users`(`id`, `name`, `email`, `password`, `gender`, `weight`, `height`) VALUES(:id, :name, :email, :password, :gender, :weight, :height)", this)
     }
 
 
