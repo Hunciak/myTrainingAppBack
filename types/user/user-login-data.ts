@@ -4,11 +4,12 @@ enum Gender {
 }
 
 export interface IUserLogIn {
+    id?: string,
     name: string,
     password: string,
 }
 
-export interface IUserSingUp{
+export interface IUserSignUp {
     name: string,
     email: string
     password: string,
@@ -16,4 +17,5 @@ export interface IUserSingUp{
     weight: number,
     height: number,
 }
+
 

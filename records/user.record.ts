@@ -1,20 +1,19 @@
 
-import {IUserSingUp} from "../types"
+import {IUserLogIn, IUserSignUp} from "../types"
 import {ValidationError} from "../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {pool} from "../utils/db";
-import {FieldPacket} from "mysql2";
+import {FieldPacket, ResultSetHeader} from "mysql2";
 
 import {bcrypt, comparePassword} from "../utils/bcrypt";
+import {accessToken, refreshToken} from "../utils/token";
+
+
+type IUserLogInResult = [IUserLogIn[], FieldPacket[]];
 
 
 
-// type UserRecordResult = [SingleUserEntity[], FieldPacket[]];
-// type EquipmentRecordResult = [AllEquipment[], FieldPacket[]];
-// type OpponentRecordResult = [AllOpponentStats[], FieldPacket[]]
-
-
-export class UserRecord implements IUserSingUp {
+export class UserRecord implements IUserSignUp {
     id: string;
     name: string;
     email: string;
@@ -24,12 +23,13 @@ export class UserRecord implements IUserSingUp {
     height: number;
 
 
-    constructor(obj: IUserSingUp) {
+    constructor(obj: IUserSignUp) {
 
         if (!obj.name || obj.name.length > 30) {
             throw new ValidationError('Nazwa użytkowanika nie może być pusta, ani przekraczać 30 znaków.')
-
         }
+
+
 
         if (!obj.email || !obj.email.includes('@')) {
             throw new ValidationError('Email użytkownika nie moży być pysty lub podana nazwa nie jest emailem')
@@ -71,17 +71,32 @@ export class UserRecord implements IUserSingUp {
     //     return results.length !== 0 ? results[0] : new Error('No data of given id');
     // }
 
-    static async logIn(email: string, password: string): Promise<string | null> {
-        const [getId] = await pool.query("SELECT id, password FROM users WHERE email = :email", {
+    static async logIn(email: string, password: string): Promise<string[] | null> {
+        const [getUser] = await pool.query("SELECT id, password FROM users WHERE email = :email", {
             email,
-        }) as any;
+        }) as IUserLogInResult;
 
-        return getId.length === 0 ? null : (await comparePassword(password, getId[0].password) ? getId[0].id : null)
+        if (!getUser[0].id || !await comparePassword(password, getUser[0].password) ) {
+            return null
+        }
+        //TODO poprawić promise
+        const refToken = await refreshToken(getUser[0].id)
+        const accToken = await accessToken(getUser[0].id)
+        await pool.query("UPDATE users SET token = :refToken WHERE id = :id", {
+            refToken,
+            id: getUser[0].id,
+        })
+        return accToken
+        // const tokens: string[] = []
+        // tokens.push(refToken);
+        // tokens.push(accToken)
+        // return tokens
     }
 
 
 
-    async insert(): Promise<void | string> {
+    async insert(): Promise<void> {
+
         if (!this.id) {
             this.id = uuid()
             this.password = await bcrypt(this.password)
@@ -89,8 +104,8 @@ export class UserRecord implements IUserSingUp {
         } else {
             throw new Error('Cannot insert something that is already inserted!')
         }
+        await pool.query("INSERT INTO `users`(`id`, `name`, `email`, `password`, `gender`, `weight`, `height`) VALUES(:id, :name, :email, :password, :gender, :weight, :height)", this)
 
-        await pool.execute("INSERT INTO `users`(`id`, `name`, `email`, `password`, `gender`, `weight`, `height`) VALUES(:id, :name, :email, :password, :gender, :weight, :height)", this)
     }
 
 
