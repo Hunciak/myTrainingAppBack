@@ -1,8 +1,3 @@
-enum Gender {
-    male,
-    female,
-}
-
 export interface IUserLogIn {
     id?: string,
     name: string,
@@ -18,4 +13,18 @@ export interface IUserSignUp {
     height: number,
 }
 
+export interface INameEmailCheck {
+    name?: string,
+    email?: string,
+}
 
+export interface ICreateNewExercise {
+    name: string,
+    series: number,
+    repeats: number,
+    time: number,
+}
+
+export interface IExerciseName {
+    name: string,
+}

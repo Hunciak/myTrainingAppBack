@@ -76,9 +76,10 @@ export class UserRecord implements IUserSignUp {
             email,
         }) as IUserLogInResult;
 
-        if (!getUser[0].id || !await comparePassword(password, getUser[0].password) ) {
-            return null
+        if (!getUser[0] || !await comparePassword(password, getUser[0].password) ) {
+            return
         }
+        console.log("minalem ifa",getUser.length)
         //TODO poprawić promise
         const refToken = await refreshToken(getUser[0].id)
         const accToken = await accessToken(getUser[0].id)
@@ -92,6 +93,18 @@ export class UserRecord implements IUserSignUp {
         // tokens.push(accToken)
         // return tokens
     }
+
+    static async logOut() {
+        return
+}
+
+    static async getExercise(): Promise<string[]> {
+        console.log('jestem w getExercise')
+        const [getExercises] = await pool.query("SELECT name FROM exercises") as any
+        return getExercises.length === 0 ? null : getExercises;
+    }
+
+
 
 
 
