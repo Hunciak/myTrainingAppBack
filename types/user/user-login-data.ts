@@ -9,8 +9,8 @@ export interface IUserSignUp {
     email: string
     password: string,
     gender: string,
-    weight: number,
-    height: number,
+    weight: string,
+    height: string,
 }
 
 export interface INameEmailCheck {

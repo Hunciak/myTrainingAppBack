@@ -5,7 +5,8 @@ export const accessToken = async (email: string) => {
     return jwt.sign(
         { "email" : email},
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: '30s'}
+        { algorithm: "HS512",
+            expiresIn: '1h',}
     );
 }
 
@@ -13,7 +14,7 @@ export const refreshToken = async (email: string) => {
     return jwt.sign(
         {"email": email},
         process.env.REFRESH_TOKEN_SECRET,
-        {expiresIn: '1d'}
+        {expiresIn: '7d'}
     );
 
 }

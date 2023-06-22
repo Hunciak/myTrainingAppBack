@@ -19,8 +19,8 @@ export class UserRecord implements IUserSignUp {
     email: string;
     password: string;
     gender: string;
-    weight: number;
-    height: number;
+    weight: string;
+    height: string;
 
 
     constructor(obj: IUserSignUp) {
@@ -79,7 +79,6 @@ export class UserRecord implements IUserSignUp {
         if (!getUser[0] || !await comparePassword(password, getUser[0].password) ) {
             return
         }
-        console.log("minalem ifa",getUser.length)
         //TODO poprawić promise
         const refToken = await refreshToken(getUser[0].id)
         const accToken = await accessToken(getUser[0].id)
@@ -87,11 +86,12 @@ export class UserRecord implements IUserSignUp {
             refToken,
             id: getUser[0].id,
         })
-        return accToken
-        // const tokens: string[] = []
-        // tokens.push(refToken);
-        // tokens.push(accToken)
-        // return tokens
+
+        const tokens: string[] = []
+        tokens.push(accToken);
+        tokens.push(refToken);
+
+        return tokens
     }
 
     static async logOut() {
@@ -99,7 +99,6 @@ export class UserRecord implements IUserSignUp {
 }
 
     static async getExercise(): Promise<string[]> {
-        console.log('jestem w getExercise')
         const [getExercises] = await pool.query("SELECT name FROM exercises") as any
         return getExercises.length === 0 ? null : getExercises;
     }

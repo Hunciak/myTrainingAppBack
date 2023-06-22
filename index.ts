@@ -4,26 +4,32 @@ import {refreshRouter} from "./routers/refresh.router";
 import {handleError} from "./utils/errors";
 import {verifyJWT} from "./utils/verifyJWT";
 import {exercisesRouter} from "./routers/exercises.router";
+import {refreshToken} from "./utils/refreshToken";
 
 const express = require('express');
 const cors = require('cors');
+const app = express();
 const cookieParser = require('cookie-parser');
 
 
-const app = express();
+// app.use((req:any, res:any, next:any) => {
+//     console.log(req); next()})
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
     origin: 'http://localhost:3000',
+    credentials: true,
 }));
 
 app.use('/signin', signInRouter);
 app.use('/signup', signUpRouter);
 app.use('/refresh', refreshRouter);
-app.use('/user', exercisesRouter);
 
-app.use(verifyJWT); //poniżej wstawić routes które maja mieć sprawdzane jwt
+app.use(verifyJWT);
+// app.use(refreshToken);
+app.use('/user', exercisesRouter);//poniżej wstawić routes które maja mieć sprawdzane jwt
+
 
 app.use(handleError);
 
