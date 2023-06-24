@@ -10,13 +10,18 @@ export const signInRouter = Router()
         console.log('jestem w signedsin',tokens)
         tokens ?
             (res
-                .cookie('jwt', tokens[0], {
-            httpOnly: true,
+                .cookie('Bearer_jwt', tokens[0], {
+                    httpOnly: true,
                     secure: true,
                     sameSite: "none",
-            maxAge: 24 * 60 * 60 * 1000
+                    maxAge: 60 * 60 * 1000
             })
-                .json(tokens[0]))
+                .cookie('Bearer_jwt_ref', tokens[1], {
+                    secure:true,
+                    sameSite: "none",
+                    maxAge: 24 * 60 * 60 * 1000
+                })
+                .sendStatus(200))
             : res.sendStatus(401);
 
     });

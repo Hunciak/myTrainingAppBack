@@ -5,26 +5,32 @@ import {pool} from "./db";
 
 export const refreshToken = async (req: any, res: any) => {
     const cookies = req.cookies;
-    if(!cookies?.jwt) return res.status(401);
-    console.log("cookie:",cookies.jwt);
-    const refreshToken = cookies.jwt;
+    if(!cookies?.Bearer_jwt_ref) return res.status(401);
 
-    const [foundUser] = await pool.query("SELECT email FROM users WHERE token = :refreshToken", {
+    const refreshToken = cookies.Bearer_jwt_ref;
+    const [foundUser] = await pool.query("SELECT id FROM users WHERE token = :refreshToken", {
         refreshToken,
     }) as any
+
     if(!foundUser) return res.sendStatus(403);
 
     jwt.verify(
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
         (err: any, decoded: any) => {
-            if(err || foundUser.email !== decoded.email) return res.sendStatus(403);
+            if(err || foundUser[0].id !== decoded.id) return res.sendStatus(403);
             const accessToken = jwt.sign(
-                {"email": decoded.email},
+                {"id": decoded.id},
                 process.env.ACCESS_TOKEN_SECRET,
-                {expiresIn: '30s'}
+                {expiresIn: '1d'}
             );
-            res.json({accessToken})
+            res
+                .cookie('Bearer_jwt', accessToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "none",
+                    maxAge: 60 * 60 * 1000
+                })
         }
     )
 }
