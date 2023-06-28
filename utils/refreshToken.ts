@@ -1,16 +1,20 @@
+import {IRefreshToken} from "../types";
+
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 import {pool} from "./db";
+import {FieldPacket} from "mysql2/index";
 
+type IRefreshTokenResult = [IRefreshToken[], FieldPacket[]]
 
-export const refreshToken = async (req: any, res: any) => {
+export const refreshToken = async (req: any, res: any, next: any) => {
     const cookies = req.cookies;
     if(!cookies?.Bearer_jwt_ref) return res.status(401);
 
     const refreshToken = cookies.Bearer_jwt_ref;
     const [foundUser] = await pool.query("SELECT id FROM users WHERE token = :refreshToken", {
         refreshToken,
-    }) as any
+    }) as IRefreshTokenResult
 
     if(!foundUser) return res.sendStatus(403);
 
@@ -33,4 +37,5 @@ export const refreshToken = async (req: any, res: any) => {
                 })
         }
     )
+    next();
 }

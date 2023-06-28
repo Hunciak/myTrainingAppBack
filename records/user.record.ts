@@ -1,5 +1,5 @@
 
-import {IUserLogIn, IUserSignUp} from "../types"
+import {ICreateNewExercise, IExerciseName, ISetName, IUserLogIn, IUserSignUp} from "../types"
 import {ValidationError} from "../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {pool} from "../utils/db";
@@ -9,7 +9,10 @@ import {bcrypt, comparePassword} from "../utils/bcrypt";
 import {accessToken, refreshToken} from "../utils/token";
 
 
+
 type IUserLogInResult = [IUserLogIn[], FieldPacket[]];
+type IUserExerciseResult = [IExerciseName[], FieldPacket[]];
+type IISetNameResult = [ISetName[], FieldPacket[]];
 
 
 
@@ -98,8 +101,8 @@ export class UserRecord implements IUserSignUp {
         return
 }
 
-    static async getExercise(): Promise<string[]> {
-        const [getExercises] = await pool.query("SELECT name FROM exercises") as any
+    static async getExercise(): Promise<IExerciseName[] | null> {
+        const [getExercises] = await pool.query("SELECT name FROM exercises") as IUserExerciseResult;
         return getExercises.length === 0 ? null : getExercises;
     }
 
@@ -121,4 +124,32 @@ export class UserRecord implements IUserSignUp {
     }
 
 
+    static async saveExercises(newExercises: ICreateNewExercise, userId: string) {
+        newExercises.id = userId;
+
+        // const [setName] = await pool.query("SELECT set_name FROM users WHERE id =:id AND set_name =:setName", {
+        //     id: newExercises.id,
+        //     setName: newExercises.setName
+        // }) as IISetNameResult;
+        // console.log('setname: ', [setName])
+        // if (setName) {
+        //     return 403
+        // } @@todo zrobic walidacje nazwy  zestawu ćwiczeń
+
+       try{
+           await pool.query("INSERT INTO `exercise_sets`(`id`, `set_name`, `name`, `series`, `repeats`, `weight`, `time`) VALUES(:id, :setName, :name, :series, :repeats, :weight, :time)", {
+               id: newExercises.id,
+               setName: newExercises.setName,
+               name: newExercises.name,
+               series: newExercises.series,
+               repeats: newExercises.repeats,
+               weight: newExercises.weight,
+               time: newExercises.time,
+
+           })
+           return 200;
+       } catch (e) {
+           return e
+       }
+    }
 }

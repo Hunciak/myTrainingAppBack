@@ -13,18 +13,25 @@ export interface IUserSignUp {
     height: string,
 }
 
-export interface INameEmailCheck {
-    name?: string,
-    email?: string,
-}
-
 export interface ICreateNewExercise {
+    id?: string,
+    setName: string,
     name: string,
     series: number,
     repeats: number,
+    weight: number,
     time: number,
 }
 
 export interface IExerciseName {
     name: string,
+}
+
+export interface ISetName {
+    id: string,
+    setName: string,
+}
+
+export interface IRefreshToken {
+    id: string,
 }
