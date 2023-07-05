@@ -1,6 +1,7 @@
 import {Router} from "express";
 import {UserRecord} from "../records/user.record";
 import {getIdFromJWT} from "../utils/verifyJWT";
+import {exerciseValidation} from "../utils/exerciseValidation";
 
 
 export const exercisesRouter = Router()
@@ -10,11 +11,21 @@ export const exercisesRouter = Router()
         res.json(getExercises);
     })
 
-    .post('/saveexer', async (req, res) => {
+    .get('/getuserexercises', async (req, res) => {
         const userId = getIdFromJWT(req.cookies)
+        const getUserExercises = await UserRecord.getUserExercise(userId);
+        res.json(getUserExercises);
+    })
 
-        const saveExercises = await UserRecord.saveExercises(req.body, userId)
+    .post('/saveexercises', async (req, res, next) => {
+        try {
+            const userId = getIdFromJWT(req.cookies);
+            await exerciseValidation(req.body, userId);
+            await UserRecord.addSetName(req.body, userId);
+            const saveExercises = UserRecord.saveExercises(req.body, userId)
 
-        saveExercises === 200 ? res.sendStatus(200) : res.sendStatus(403)
-
+            res.sendStatus(saveExercises)
+        } catch (e) {
+            next(e)
+        }
     })

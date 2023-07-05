@@ -7,7 +7,7 @@ export const signInRouter = Router()
 
     .post('/', async (req, res) => {
         const tokens = await UserRecord.logIn(req.body.name, req.body.password);
-        console.log('jestem w signedsin',tokens)
+
         tokens ?
             (res
                 .cookie('Bearer_jwt', tokens[0], {
@@ -23,5 +23,5 @@ export const signInRouter = Router()
                 })
                 .sendStatus(200))
             : res.sendStatus(401);
-
+        console.log('jestem w signedsin',tokens)
     });

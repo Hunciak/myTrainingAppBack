@@ -5,13 +5,14 @@ import {regValidation} from "../utils/regValidation";
 
 export const signUpRouter = Router()
 
-    .post('/', async (req, res) => {
-        const regValid = await regValidation(req.body.name, req.body.email)
-        if (regValid) {
-            console.log("validacja rejestraji:", regValid)
-            return res.json(regValid)
+    .post('/', async (req, res, next) => {
+        try {
+            await regValidation(req.body.name, req.body.email)
+            const user = new UserRecord(req.body);
+            await user.insert();
+            res.sendStatus(200);
+        } catch (e) {
+            next(e)
         }
-        const user = new UserRecord(req.body);
-        await user.insert();
-        res.sendStatus(200);
+
     });
