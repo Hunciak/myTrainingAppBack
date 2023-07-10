@@ -12,6 +12,7 @@ export const signUpRouter = Router()
             await user.insert();
             res.sendStatus(200);
         } catch (e) {
+
             next(e)
         }
 

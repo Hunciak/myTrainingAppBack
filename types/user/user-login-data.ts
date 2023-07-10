@@ -15,7 +15,7 @@ export interface IUserSignUp {
 
 export interface ICreateNewExercise {
     id?: string,
-    setName: string,
+    setName?: string,
     name: string,
     series: number,
     repeats: number,
@@ -24,7 +24,8 @@ export interface ICreateNewExercise {
 }
 
 export interface IExerciseName {
-    name: string,
+    name?: string,
+    set_name?: string,
 }
 
 export interface ISetName {

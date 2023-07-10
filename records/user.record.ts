@@ -1,15 +1,16 @@
 import {ICreateNewExercise, IExerciseName, ISetName, IUserLogIn, IUserSignUp} from "../types"
-import {ValidationError} from "../utils/errors";
+import {UnknownError, ValidationError} from "../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {pool} from "../utils/db";
-import {FieldPacket, ResultSetHeader} from "mysql2";
+import {FieldPacket} from "mysql2";
 
 import {bcrypt, comparePassword} from "../utils/bcrypt";
 import {accessToken, refreshToken} from "../utils/token";
 
 type IUserLogInResult = [IUserLogIn[], FieldPacket[]];
 type IUserExerciseResult = [IExerciseName[], FieldPacket[]];
-type IISetNameResult = [ISetName[], FieldPacket[]];
+type ISetNameResult = [ISetName[], FieldPacket[]];
+type ICreateNewExerciseResult = [ICreateNewExercise[], FieldPacket[]]
 
 export class UserRecord implements IUserSignUp {
     id: string;
@@ -119,14 +120,10 @@ export class UserRecord implements IUserSignUp {
                weight: exercise.weight,
                time: exercise.time,
            })
-           return 200;
        } catch (e) {
-           console.log(e)
-           return 403
+            throw new UnknownError('Coś poszło nie tak, spróbuj ponownie później.')
        }
-            }
-        )
-        return 200
+            })
     }
 
     static async getExercise(): Promise<IExerciseName[] | null> {
@@ -135,11 +132,42 @@ export class UserRecord implements IUserSignUp {
     }
 
     static async getUserExercise(userId: string): Promise<IExerciseName[] | null> {
-        const [getUserExercises] = await pool.query("SELECT set_name FROM exercise_sets WHERE id = :id", {
+        const [getUserExercises] = await pool.query("SELECT set_name FROM user_sets_name WHERE id = :id", {
             id: userId,
         }) as IUserExerciseResult;
         return getUserExercises.length === 0 ? null : getUserExercises;
     }
 
-
+    static async getUserExerciseDetails(userId: string, set_name: string) {
+        const [getUserExerciseDetails] = await pool.query("SELECT name, series, repeats, weight, time FROM exercise_sets WHERE id =:userId AND set_name =:set_name", {
+            userId,
+            set_name,
+        }) as ICreateNewExerciseResult
+        return getUserExerciseDetails[0] ? [getUserExerciseDetails] : null;
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

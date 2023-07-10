@@ -3,7 +3,6 @@ import {ValidationError} from "./errors";
 
 
 export const regValidation = async (username: string, email: string) => {
-    console.log(email)
 
     const [emailCheck] = await pool.query("SELECT email FROM users WHERE email = :email", {
             email
@@ -17,7 +16,13 @@ export const regValidation = async (username: string, email: string) => {
     )
 
     const nameCheckErr: any = nameCheck
-    if ((emailCheckErr.length !== 0) || nameCheckErr.length !== 0) {
-        throw new ValidationError('Nazwa użytkownika lub email zajęta.')
+    if ((emailCheckErr.length !== 0) && nameCheckErr.length !== 0) {
+        throw new ValidationError('Nazwa użytkownika i email zajęta.')
+    }
+    if ((emailCheckErr.length !== 0)) {
+        throw new ValidationError('Email zajęty.')
+    }
+    if ((nameCheckErr.length !== 0)) {
+        throw new ValidationError('Nazwa użytkownika zajęta.')
     }
 }

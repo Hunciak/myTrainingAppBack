@@ -1,24 +1,23 @@
 import {pool} from "./db";
+import {getIdFromJWT} from "./verifyJWT";
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const fsPromises = require('fs').promises;
-const path = require('path');
+
 
 const handleLogout = async (req: any, res: any) => {
     //delete jwt on fe
+    const userId = getIdFromJWT(req.cookies.Bearer_jwt)
+    if(!req.cookies?.Bearer_jwt) return res.status(204); //No content
 
-    const cookies = req.cookies;
-    if(!cookies?.jwt) return res.status(204); //No content
-
-    const refreshToken = cookies.jwt;
-
-    const [foundUser] = await pool.query("SELECT email FROM users WHERE token = :refreshToken", {
-        refreshToken,
-    }) as any
-    if(!foundUser) {
-        res.clearCookie('jwt', {httpOnly: true, maxAge: 24 * 60 * 60 * 1000});
+    if(userId) {
+        res.clearCookie('Bearer_jwt', {httpOnly: true, maxAge: 24 * 60 * 60 * 1000});
+        res.clearCookie('Bearer_jwt_ref', {httpOnly: true, maxAge: 24 * 60 * 60 * 1000});
+        await pool.query("UPDATE users SET token = `` WHERE id = :id", {
+            id: userId,
+        })
         return res.sendStatus(204);
     }
     //delete refresh token in db
+
 
 }

@@ -1,8 +1,12 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-export const verifyJWT = (req: any, res: any, next: any) => {
+interface MyCookie {
+    Bearer_jwt: string;
+    id?: string;
+}
 
+export const verifyJWT = (req: any, res: any, next: any) => {
     const authHeader = req.cookies.Bearer_jwt;
     if (!authHeader) return res.sendStatus(401);
     jwt.verify(
@@ -17,7 +21,7 @@ export const verifyJWT = (req: any, res: any, next: any) => {
     )
  }
 
- export const getIdFromJWT = (cookie: any): string => {
+ export const getIdFromJWT = (cookie: MyCookie): string => {
      const authHeader = cookie.Bearer_jwt;
      jwt.verify(
          authHeader,

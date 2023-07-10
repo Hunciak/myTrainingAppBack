@@ -1,6 +1,6 @@
 import {ICreateNewExercise} from "../types";
 import {pool} from "./db";
-import {ExerciseValidationError} from "./errors";
+import {UnknownError, ValidationError} from "./errors";
 
 
 export const exerciseValidation = async (exerciseValidation: ICreateNewExercise[], id: string): Promise<number[]> => {
@@ -8,16 +8,16 @@ export const exerciseValidation = async (exerciseValidation: ICreateNewExercise[
     const validation: number[] = [];
 
     if (exerciseValidation.length === 0) {
-        throw new ExerciseValidationError('Należy dodać przynajmniej 1 ćwiczenie.')
+        throw new ValidationError('Należy dodać przynajmniej 1 ćwiczenie.')
     }
 
     await exerciseValidation.forEach((exercise:ICreateNewExercise) => {
 
         if (!id || !exercise.setName) {
-            throw new ExerciseValidationError('Nie podano nazwy zestawu ćwiczeń.')
+            throw new ValidationError('Nie podano nazwy zestawu ćwiczeń.')
         }
         if (!exercise.name) {
-            throw new ExerciseValidationError('Nie podano nazwy ćwiczenia.')
+            throw new ValidationError('Nie podano nazwy ćwiczenia.')
         }
 
         try {
@@ -26,11 +26,11 @@ export const exerciseValidation = async (exerciseValidation: ICreateNewExercise[
                 name: exercise.setName,
             })
         } catch (e) {
-            throw new ExerciseValidationError('Nieznany błąd, spróbuj ponownie później.')
+            throw new UnknownError('Nieznany błąd, spróbuj ponownie później.')
         }
 
         if (Math.abs(exercise.series).toString().length > 3 || Math.abs(exercise.repeats).toString().length > 3 || Math.abs(exercise.time).toString().length > 3) {
-            throw new ExerciseValidationError('Należy dodać przynajmniej 1 ćwiczenie.')
+            throw new ValidationError('Ilość serii, powtórzeń i czas nie mogą być dłuższe niż 999.')
         }
         validation.push(200);
     })

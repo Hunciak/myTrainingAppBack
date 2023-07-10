@@ -23,5 +23,5 @@ export const signInRouter = Router()
                 })
                 .sendStatus(200))
             : res.sendStatus(401);
-        console.log('jestem w signedsin',tokens)
+
     });

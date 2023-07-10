@@ -14,7 +14,14 @@ export const exercisesRouter = Router()
     .get('/getuserexercises', async (req, res) => {
         const userId = getIdFromJWT(req.cookies)
         const getUserExercises = await UserRecord.getUserExercise(userId);
-        res.json(getUserExercises);
+        getUserExercises === null ? res.sendStatus(204) : res.json(getUserExercises);
+    })
+
+    .get('/getuserexercisesdetails?:value', async (req, res) => {
+        const userId = getIdFromJWT(req.cookies)
+        const exerciseName = req.query.value as string
+        const getUserExerciseDetails = await UserRecord.getUserExerciseDetails(userId, exerciseName);
+        getUserExerciseDetails === null ? res.sendStatus(204) : res.json(getUserExerciseDetails)
     })
 
     .post('/saveexercises', async (req, res, next) => {
@@ -22,9 +29,8 @@ export const exercisesRouter = Router()
             const userId = getIdFromJWT(req.cookies);
             await exerciseValidation(req.body, userId);
             await UserRecord.addSetName(req.body, userId);
-            const saveExercises = UserRecord.saveExercises(req.body, userId)
-
-            res.sendStatus(saveExercises)
+            UserRecord.saveExercises(req.body, userId)
+            res.sendStatus(200)
         } catch (e) {
             next(e)
         }

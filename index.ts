@@ -28,6 +28,7 @@ app.use('/refresh', refreshRouter);
 
 app.use(refreshToken);
 app.use(verifyJWT);
+
 app.use('/user', exercisesRouter);//poniżej wstawić routes które maja mieć sprawdzane jwt
 
 
