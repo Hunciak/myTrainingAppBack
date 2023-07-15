@@ -93,16 +93,30 @@ export class UserRecord implements IUserSignUp {
     }
 
     static async getData(id: string): Promise<IUserData[]> {
-        const [getData] = await pool.query("SELECT name, email, weight, height FROM users WHERE ?", [
+        const [getData] = await pool.query("SELECT name, email, weight, height FROM users WHERE id = ?", [
             id,
         ]) as IGetDataUser
         return getData.length === 0 ? null : getData;
     }
 
-    static async addSetName(newExercises: ICreateNewExercise[], userId: string) {
-        console.log("new exercises",newExercises)
+    static async updateUserData(newData: IUserData, userId: string) {
         try {
-            if(!newExercises[0].id_set_name){
+            await pool.query("UPDATE users SET name = ?, email = ?, weight = ?, height = ? WHERE id = ?", [
+                newData.name,
+                newData.email,
+                newData.weight,
+                newData.height,
+                userId,
+            ]);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    static async addSetName(newExercises: ICreateNewExercise[], userId: string) {
+        console.log("new exercises", newExercises)
+        try {
+            if (!newExercises[0].id_set_name) {
                 newExercises[0].id_set_name = uuid();
             }
             console.log("jestem", newExercises)
@@ -115,6 +129,7 @@ export class UserRecord implements IUserSignUp {
             return 500  //conflict: Resource already exists
         }
     }
+
 
     static saveExercises(newExercises: ICreateNewExercise[], userId: string) {
 
@@ -160,6 +175,7 @@ export class UserRecord implements IUserSignUp {
         console.log(getUserExerciseDetails)
         return getUserExerciseDetails[0] ? getUserExerciseDetails : null;
     }
+
 
     static updateExercises(newExercise: ICreateNewExercise[], userId: string) {
 
