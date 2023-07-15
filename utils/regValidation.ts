@@ -20,9 +20,9 @@ export const regValidation = async (username: string, email: string) => {
         throw new ValidationError('Nazwa użytkownika i email zajęta.')
     }
     if ((emailCheckErr.length !== 0)) {
-        throw new ValidationError('Email zajęty.')
+        throw new ValidationError('Podany adres email jest zajęty. Wybierz inny.')
     }
     if ((nameCheckErr.length !== 0)) {
-        throw new ValidationError('Nazwa użytkownika zajęta.')
+        throw new ValidationError('Istnieje użytkownik o tej samej nazwie.')
     }
 }

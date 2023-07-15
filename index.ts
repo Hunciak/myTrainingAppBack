@@ -5,6 +5,7 @@ import {handleError} from "./utils/errors";
 import {verifyJWT} from "./utils/verifyJWT";
 import {exercisesRouter} from "./routers/exercises.router";
 import {refreshToken} from "./utils/refreshToken";
+import {userRouter} from "./routers/user.router";
 
 const express = require('express');
 const cors = require('cors');
@@ -25,8 +26,9 @@ app.use(cors({
 app.use('/signin', signInRouter);
 app.use('/signup', signUpRouter);
 app.use('/refresh', refreshRouter);
-
+app.use('/profil', userRouter);
 app.use(refreshToken);
+
 app.use(verifyJWT);
 
 

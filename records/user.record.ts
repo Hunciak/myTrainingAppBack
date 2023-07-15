@@ -1,4 +1,4 @@
-import {ICreateNewExercise, IExerciseName, ISetName, IUserLogIn, IUserSignUp} from "../types"
+import {ICreateNewExercise, IExerciseName, ISetName, IUserData, IUserLogIn, IUserSignUp} from "../types"
 import {UnknownError, ValidationError} from "../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {pool} from "../utils/db";
@@ -10,6 +10,7 @@ import {accessToken, refreshToken} from "../utils/token";
 type IUserLogInResult = [IUserLogIn[], FieldPacket[]];
 type IUserExerciseResult = [IExerciseName[], FieldPacket[]];
 type ISetNameResult = [ISetName[], FieldPacket[]];
+type IGetDataUser = [IUserData[], FieldPacket[]];
 type ICreateNewExerciseResult = [ICreateNewExercise[], FieldPacket[]]
 
 export class UserRecord implements IUserSignUp {
@@ -74,7 +75,7 @@ export class UserRecord implements IUserSignUp {
             email,
         }) as IUserLogInResult;
 
-        if (!getUser[0] || !await comparePassword(password, getUser[0].password) ) {
+        if (!getUser[0] || !await comparePassword(password, getUser[0].password)) {
             return
         }
         //TODO poprawić promise
@@ -85,6 +86,7 @@ export class UserRecord implements IUserSignUp {
             id: getUser[0].id,
         })
 
+
         const tokens: string[] = []
         tokens.push(accToken);
         tokens.push(refToken);
@@ -92,44 +94,51 @@ export class UserRecord implements IUserSignUp {
         return tokens
     }
 
+    static async getData(id: string): Promise<IUserData[]> {
+        const [getData] = await pool.query("SELECT name, email, weight, height FROM users WHERE id=:id", {
+            id,
+        }) as IGetDataUser
+        return getData.length === 0 ? null : getData;
+    }
+
     static async logOut() {
         return
-}
+    }
 
 
     static async addSetName(newExercises: ICreateNewExercise[], userId: string) {
-         try {
-             await pool.query("INSERT INTO `user_sets_name` (`id`, `set_name`) VALUES(:id, :setName)", {
-                 id: userId,
-                 setName: newExercises[0].setName,
-             })
-         } catch (e) {
-             return 500  //conflict: Resource already exists
-         }
+        try {
+            await pool.query("INSERT INTO `user_sets_name` (`id`, `set_name`) VALUES(:id, :setName)", {
+                id: userId,
+                setName: newExercises[0].setName,
+            })
+        } catch (e) {
+            return 500  //conflict: Resource already exists
+        }
     }
 
-    static  saveExercises(newExercises: ICreateNewExercise[], userId: string) {
+    static saveExercises(newExercises: ICreateNewExercise[], userId: string) {
 
         newExercises.forEach(async (exercise) => {
 
-       try{
-           if (!exercise.exerId) {
-               exercise.exerId = uuid()
-           }
-           await pool.query("INSERT INTO `exercise_sets`(`id`, `set_name`, `name`, `series`, `repeats`, `weight`, `time`, `exerId`) VALUES(:id, :setName, :name, :series, :repeats, :weight, :time, :exerId)", {
-               id: userId,
-               setName: exercise.setName,
-               name: exercise.name,
-               series: exercise.series,
-               repeats: exercise.repeats,
-               weight: exercise.weight,
-               time: exercise.time,
-               exerId: exercise.exerId,
-           })
-       } catch (e) {
-            throw new UnknownError('Coś poszło nie tak, spróbuj ponownie później.')
-       }
-            })
+            try {
+                if (!exercise.exerId) {
+                    exercise.exerId = uuid()
+                }
+                await pool.query("INSERT INTO `exercise_sets`(`id`, `set_name`, `name`, `series`, `repeats`, `weight`, `time`, `exerId`) VALUES(:id, :setName, :name, :series, :repeats, :weight, :time, :exerId)", {
+                    id: userId,
+                    setName: exercise.setName,
+                    name: exercise.name,
+                    series: exercise.series,
+                    repeats: exercise.repeats,
+                    weight: exercise.weight,
+                    time: exercise.time,
+                    exerId: exercise.exerId,
+                })
+            } catch (e) {
+                throw new UnknownError('Coś poszło nie tak, spróbuj ponownie później.')
+            }
+        })
     }
 
     static async getExercise(): Promise<IExerciseName[] | null> {
@@ -152,12 +161,12 @@ export class UserRecord implements IUserSignUp {
         return getUserExerciseDetails[0] ? getUserExerciseDetails : null;
     }
 
-    static updateExercises(newExercise:ICreateNewExercise[] , userId: string) {
+    static updateExercises(newExercise: ICreateNewExercise[], userId: string) {
 
-         newExercise.forEach(async (exercise) => {
+        newExercise.forEach(async (exercise) => {
             try {
 
-               await pool.query("UPDATE exercise_sets SET name =:name, set_name =:set_name, series =:series, repeats =:repeats, weight =:weight, time =:time WHERE set_name =:set_name AND id =:userId AND exerId =:exerId", {
+                await pool.query("UPDATE exercise_sets SET name =:name, set_name =:set_name, series =:series, repeats =:repeats, weight =:weight, time =:time WHERE set_name =:set_name AND id =:userId AND exerId =:exerId", {
                     name: exercise.name,
                     set_name: exercise.set_name,
                     series: exercise.series,

@@ -31,6 +31,7 @@ export interface IExerciseName {
     set_name?: string,
 }
 
+
 export interface ISetName {
     id: string,
     setName: string,
@@ -39,3 +40,14 @@ export interface ISetName {
 export interface IRefreshToken {
     id: string,
 }
+
+export interface IUserData{
+    name: string,
+    email: string,
+    weight: string,
+    height: string,
+}
+
+
+
+
