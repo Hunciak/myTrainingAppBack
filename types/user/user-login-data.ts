@@ -16,11 +16,14 @@ export interface IUserSignUp {
 export interface ICreateNewExercise {
     id?: string,
     setName?: string,
+    set_name?: string,
+    exerId?: string,
     name: string,
     series: number,
     repeats: number,
     weight: number,
     time: number,
+
 }
 
 export interface IExerciseName {

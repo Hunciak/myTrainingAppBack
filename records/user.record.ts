@@ -96,6 +96,7 @@ export class UserRecord implements IUserSignUp {
         return
 }
 
+
     static async addSetName(newExercises: ICreateNewExercise[], userId: string) {
          try {
              await pool.query("INSERT INTO `user_sets_name` (`id`, `set_name`) VALUES(:id, :setName)", {
@@ -110,8 +111,12 @@ export class UserRecord implements IUserSignUp {
     static  saveExercises(newExercises: ICreateNewExercise[], userId: string) {
 
         newExercises.forEach(async (exercise) => {
+
        try{
-           await pool.query("INSERT INTO `exercise_sets`(`id`, `set_name`, `name`, `series`, `repeats`, `weight`, `time`) VALUES(:id, :setName, :name, :series, :repeats, :weight, :time)", {
+           if (!exercise.exerId) {
+               exercise.exerId = uuid()
+           }
+           await pool.query("INSERT INTO `exercise_sets`(`id`, `set_name`, `name`, `series`, `repeats`, `weight`, `time`, `exerId`) VALUES(:id, :setName, :name, :series, :repeats, :weight, :time, :exerId)", {
                id: userId,
                setName: exercise.setName,
                name: exercise.name,
@@ -119,6 +124,7 @@ export class UserRecord implements IUserSignUp {
                repeats: exercise.repeats,
                weight: exercise.weight,
                time: exercise.time,
+               exerId: exercise.exerId,
            })
        } catch (e) {
             throw new UnknownError('Coś poszło nie tak, spróbuj ponownie później.')
@@ -132,18 +138,39 @@ export class UserRecord implements IUserSignUp {
     }
 
     static async getUserExercise(userId: string): Promise<IExerciseName[] | null> {
-        const [getUserExercises] = await pool.query("SELECT set_name FROM user_sets_name WHERE id = :id", {
+        const [getUserExercises] = await pool.query("SELECT set_name FROM user_sets_name WHERE id =:id", {
             id: userId,
         }) as IUserExerciseResult;
         return getUserExercises.length === 0 ? null : getUserExercises;
     }
 
     static async getUserExerciseDetails(userId: string, set_name: string) {
-        const [getUserExerciseDetails] = await pool.query("SELECT name, series, repeats, weight, time FROM exercise_sets WHERE id =:userId AND set_name =:set_name", {
+        const [getUserExerciseDetails] = await pool.query("SELECT name, set_name, series, repeats, weight, time FROM exercise_sets WHERE id =:userId AND set_name =:set_name", {
             userId,
             set_name,
         }) as ICreateNewExerciseResult
-        return getUserExerciseDetails[0] ? [getUserExerciseDetails] : null;
+        return getUserExerciseDetails[0] ? getUserExerciseDetails : null;
+    }
+
+    static updateExercises(newExercise:ICreateNewExercise[] , userId: string) {
+
+         newExercise.forEach(async (exercise) => {
+            try {
+
+               await pool.query("UPDATE exercise_sets SET name =:name, set_name =:set_name, series =:series, repeats =:repeats, weight =:weight, time =:time WHERE set_name =:set_name AND id =:userId AND exerId =:exerId", {
+                    name: exercise.name,
+                    set_name: exercise.set_name,
+                    series: exercise.series,
+                    repeats: exercise.repeats,
+                    weight: exercise.weight,
+                    time: exercise.time,
+                    exerId: exercise.exerId,
+                    userId,
+                })
+            } catch (e) {
+                console.log(e)
+            }
+        })
     }
 }
 

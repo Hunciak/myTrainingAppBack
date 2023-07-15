@@ -28,10 +28,22 @@ export const exercisesRouter = Router()
         try {
             const userId = getIdFromJWT(req.cookies);
             await exerciseValidation(req.body, userId);
+            console.log("to je req", req.body)
             await UserRecord.addSetName(req.body, userId);
             UserRecord.saveExercises(req.body, userId)
             res.sendStatus(200)
         } catch (e) {
+            next(e)
+        }
+    })
+
+    .put('/updateexercise', async (req, res, next) => {
+        try {
+            const userId = getIdFromJWT(req.cookies);
+            await exerciseValidation(req.body, userId);
+            await UserRecord.updateExercises(req.body, userId);
+        } catch (e) {
+            console.log("błędzik: ", e)
             next(e)
         }
     })

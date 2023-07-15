@@ -22,6 +22,7 @@ export const verifyJWT = (req: any, res: any, next: any) => {
  }
 
  export const getIdFromJWT = (cookie: MyCookie): string => {
+     console.log(cookie)
      const authHeader = cookie.Bearer_jwt;
      jwt.verify(
          authHeader,
@@ -32,5 +33,6 @@ export const verifyJWT = (req: any, res: any, next: any) => {
              cookie.id = decoded.id;
          }
      )
+
      return cookie.id
 }
