@@ -18,6 +18,7 @@ export const exercisesRouter = Router()
     })
 
     .get('/getuserexercisesdetails?:value', async (req, res) => {
+        console.log("co przekazuje", req.query)
         const userId = getIdFromJWT(req.cookies)
         const exerciseName = req.query.value as string
         const getUserExerciseDetails = await UserRecord.getUserExerciseDetails(userId, exerciseName);
@@ -28,9 +29,8 @@ export const exercisesRouter = Router()
         try {
             const userId = getIdFromJWT(req.cookies);
             await exerciseValidation(req.body, userId);
-            console.log("to je req", req.body)
             await UserRecord.addSetName(req.body, userId);
-            UserRecord.saveExercises(req.body, userId)
+            await UserRecord.saveExercises(req.body, userId)
             res.sendStatus(200)
         } catch (e) {
             next(e)

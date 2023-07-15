@@ -1,4 +1,4 @@
-import {ICreateNewExercise, IExerciseName, ISetName, IUserData, IUserLogIn, IUserSignUp} from "../types"
+import {ICreateNewExercise, IExerciseName, IUserData, IUserLogIn, IUserSignUp} from "../types"
 import {UnknownError, ValidationError} from "../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {pool} from "../utils/db";
@@ -9,7 +9,6 @@ import {accessToken, refreshToken} from "../utils/token";
 
 type IUserLogInResult = [IUserLogIn[], FieldPacket[]];
 type IUserExerciseResult = [IExerciseName[], FieldPacket[]];
-type ISetNameResult = [ISetName[], FieldPacket[]];
 type IGetDataUser = [IUserData[], FieldPacket[]];
 type ICreateNewExerciseResult = [ICreateNewExercise[], FieldPacket[]]
 
@@ -71,9 +70,9 @@ export class UserRecord implements IUserSignUp {
     }
 
     static async logIn(email: string, password: string): Promise<string[] | null> {
-        const [getUser] = await pool.query("SELECT id, password FROM users WHERE email = :email", {
+        const [getUser] = await pool.query("SELECT id, password FROM users WHERE email = ?", [
             email,
-        }) as IUserLogInResult;
+        ]) as IUserLogInResult;
 
         if (!getUser[0] || !await comparePassword(password, getUser[0].password)) {
             return
@@ -81,11 +80,10 @@ export class UserRecord implements IUserSignUp {
         //TODO poprawić promise
         const refToken = await refreshToken(getUser[0].id)
         const accToken = await accessToken(getUser[0].id)
-        await pool.query("UPDATE users SET token = :refToken WHERE id = :id", {
+        await pool.query("UPDATE users SET token = ? WHERE id = ?", [
             refToken,
-            id: getUser[0].id,
-        })
-
+            getUser[0].id,
+        ])
 
         const tokens: string[] = []
         tokens.push(accToken);
@@ -95,23 +93,24 @@ export class UserRecord implements IUserSignUp {
     }
 
     static async getData(id: string): Promise<IUserData[]> {
-        const [getData] = await pool.query("SELECT name, email, weight, height FROM users WHERE id=:id", {
+        const [getData] = await pool.query("SELECT name, email, weight, height FROM users WHERE ?", [
             id,
-        }) as IGetDataUser
+        ]) as IGetDataUser
         return getData.length === 0 ? null : getData;
     }
 
-    static async logOut() {
-        return
-    }
-
-
     static async addSetName(newExercises: ICreateNewExercise[], userId: string) {
+        console.log("new exercises",newExercises)
         try {
-            await pool.query("INSERT INTO `user_sets_name` (`id`, `set_name`) VALUES(:id, :setName)", {
-                id: userId,
-                setName: newExercises[0].setName,
-            })
+            if(!newExercises[0].id_set_name){
+                newExercises[0].id_set_name = uuid();
+            }
+            console.log("jestem", newExercises)
+            await pool.query("INSERT INTO `user_sets_name` (`id`, `set_name`, `id_set_name`) VALUES(?, ?, ?)", [
+                userId,
+                newExercises[0].set_name,
+                newExercises[0].id_set_name,
+            ])
         } catch (e) {
             return 500  //conflict: Resource already exists
         }
@@ -125,16 +124,16 @@ export class UserRecord implements IUserSignUp {
                 if (!exercise.exerId) {
                     exercise.exerId = uuid()
                 }
-                await pool.query("INSERT INTO `exercise_sets`(`id`, `set_name`, `name`, `series`, `repeats`, `weight`, `time`, `exerId`) VALUES(:id, :setName, :name, :series, :repeats, :weight, :time, :exerId)", {
-                    id: userId,
-                    setName: exercise.setName,
-                    name: exercise.name,
-                    series: exercise.series,
-                    repeats: exercise.repeats,
-                    weight: exercise.weight,
-                    time: exercise.time,
-                    exerId: exercise.exerId,
-                })
+                await pool.query("INSERT INTO `exercise_sets`(`id`, `set_name`, `name`, `series`, `repeats`, `weight`, `time`, `exerId`) VALUES(?, ? ,? ,? ,? ,? ,? ,?)", [
+                    userId,
+                    exercise.set_name,
+                    exercise.name,
+                    exercise.series,
+                    exercise.repeats,
+                    exercise.weight,
+                    exercise.time,
+                    exercise.exerId,
+                ])
             } catch (e) {
                 throw new UnknownError('Coś poszło nie tak, spróbuj ponownie później.')
             }
@@ -147,17 +146,18 @@ export class UserRecord implements IUserSignUp {
     }
 
     static async getUserExercise(userId: string): Promise<IExerciseName[] | null> {
-        const [getUserExercises] = await pool.query("SELECT set_name FROM user_sets_name WHERE id =:id", {
-            id: userId,
-        }) as IUserExerciseResult;
+        const [getUserExercises] = await pool.query("SELECT set_name FROM user_sets_name WHERE id = ?", [
+            userId,
+        ]) as IUserExerciseResult;
         return getUserExercises.length === 0 ? null : getUserExercises;
     }
 
     static async getUserExerciseDetails(userId: string, set_name: string) {
-        const [getUserExerciseDetails] = await pool.query("SELECT name, set_name, series, repeats, weight, time FROM exercise_sets WHERE id =:userId AND set_name =:set_name", {
+        const [getUserExerciseDetails] = await pool.query("SELECT name, set_name, series, repeats, weight, time FROM exercise_sets WHERE id = ? AND set_name = ?", [
             userId,
             set_name,
-        }) as ICreateNewExerciseResult
+        ]) as ICreateNewExerciseResult
+        console.log(getUserExerciseDetails)
         return getUserExerciseDetails[0] ? getUserExerciseDetails : null;
     }
 
@@ -165,17 +165,17 @@ export class UserRecord implements IUserSignUp {
 
         newExercise.forEach(async (exercise) => {
             try {
-
-                await pool.query("UPDATE exercise_sets SET name =:name, set_name =:set_name, series =:series, repeats =:repeats, weight =:weight, time =:time WHERE set_name =:set_name AND id =:userId AND exerId =:exerId", {
-                    name: exercise.name,
-                    set_name: exercise.set_name,
-                    series: exercise.series,
-                    repeats: exercise.repeats,
-                    weight: exercise.weight,
-                    time: exercise.time,
-                    exerId: exercise.exerId,
+                await pool.query("UPDATE exercise_sets SET name, set_name, series, repeats, weight, time VALUES(?, ?, ? ,? ,?, ?) WHERE set_name = ? AND id = ? AND exerId = ?", [
+                    exercise.name,
+                    exercise.set_name,
+                    exercise.series,
+                    exercise.repeats,
+                    exercise.weight,
+                    exercise.time,
+                    exercise.set_name,
                     userId,
-                })
+                    exercise.exerId,
+                ])
             } catch (e) {
                 console.log(e)
             }

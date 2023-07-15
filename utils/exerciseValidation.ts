@@ -17,7 +17,7 @@ export const exerciseValidation = async (exerciseValidation: ICreateNewExercise[
         try {
             const [nameValidResult] = await pool.query("SELECT name FROM exercise_sets WHERE name =:name AND set_name =:setName AND id =:id", {
                 name: exercise.name,
-                setName: exercise.setName,
+                set_name: exercise.set_name,
                 id,
             }) as any;
 
@@ -29,10 +29,10 @@ export const exerciseValidation = async (exerciseValidation: ICreateNewExercise[
         }
 
         if (nameValidation.length > 0){
-            throw new ValidationError(`Ćwiczenie ${exercise.name} występuje już w zestawie ${exercise.setName}`);
+            throw new ValidationError(`Ćwiczenie ${exercise.name} występuje już w zestawie ${exercise.set_name}`);
         }
 
-        if (!id && !exercise.setName) {
+        if (!id && !exercise.set_name) {
             throw new ValidationError('Nie podano nazwy zestawu ćwiczeń.');
         }
         if (!exercise.name) {
