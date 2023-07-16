@@ -28,6 +28,7 @@ export interface ICreateNewExercise {
 export interface IExerciseName {
     name?: string,
     set_name?: string,
+
 }
 
 export interface IRefreshToken {
@@ -39,6 +40,17 @@ export interface IUserData{
     email: string,
     weight: string,
     height: string,
+}
+
+export interface ICalendarEvent {
+    id_title?: string,
+    title: string ,
+    start: Date,
+    end: Date,
+}
+
+export interface ICalendarSetName {
+    id_set_name: string,
 }
 
 

@@ -1,4 +1,12 @@
-import {ICreateNewExercise, IExerciseName, IUserData, IUserLogIn, IUserSignUp} from "../types"
+import {
+    ICalendarEvent,
+    ICalendarSetName,
+    ICreateNewExercise,
+    IExerciseName,
+    IUserData,
+    IUserLogIn,
+    IUserSignUp
+} from "../types"
 import {UnknownError, ValidationError} from "../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {pool} from "../utils/db";
@@ -11,6 +19,7 @@ type IUserLogInResult = [IUserLogIn[], FieldPacket[]];
 type IUserExerciseResult = [IExerciseName[], FieldPacket[]];
 type IGetDataUser = [IUserData[], FieldPacket[]];
 type ICreateNewExerciseResult = [ICreateNewExercise[], FieldPacket[]]
+type IGetCalendarResult = [ICalendarEvent[], FieldPacket[]]
 
 export class UserRecord implements IUserSignUp {
     id: string;
@@ -77,7 +86,6 @@ export class UserRecord implements IUserSignUp {
         if (!getUser[0] || !await comparePassword(password, getUser[0].password)) {
             return
         }
-        //TODO poprawić promise
         const refToken = await refreshToken(getUser[0].id)
         const accToken = await accessToken(getUser[0].id)
         await pool.query("UPDATE users SET token = ? WHERE id = ?", [
@@ -114,12 +122,11 @@ export class UserRecord implements IUserSignUp {
     };
 
     static async addSetName(newExercises: ICreateNewExercise[], userId: string) {
-        console.log("new exercises", newExercises)
+        console.log("new exercises",newExercises)
         try {
             if (!newExercises[0].id_set_name) {
                 newExercises[0].id_set_name = uuid();
             }
-            console.log("jestem", newExercises)
             await pool.query("INSERT INTO `user_sets_name` (`id`, `set_name`, `id_set_name`) VALUES(?, ?, ?)", [
                 userId,
                 newExercises[0].set_name,
@@ -197,29 +204,39 @@ export class UserRecord implements IUserSignUp {
             }
         })
     }
+
+    static async getEvents(userId: string) {
+        const [getEvents] = await pool.query("SELECT id_title, title, start, end FROM schedule WHERE id = ? ", [
+            userId,
+        ]) as IGetCalendarResult;
+        console.log(getEvents.length === 0 ? null : getEvents)
+        return getEvents.length === 0 ? null : getEvents;
+    }
+
+    static async saveEvent(newEvent: ICalendarEvent, userId: string) {
+
+        if(!newEvent.id_title) {
+            newEvent.id_title = uuid();
+        }
+
+        await pool.query("INSERT INTO `schedule` (`id_title`, `id`, `title`, `start`, `end`) VALUES (?, ?, ?, ?, ?)", [
+            newEvent.id_title,
+            userId,
+            newEvent.title,
+            newEvent.start,
+            newEvent.end,
+        ])
+    }
+
+    static async deleteEvent(value: any) {
+        try {
+            await pool.query("DELETE FROM schedule WHERE id_title = ? ", [
+                value,
+            ])
+
+        } catch (e) {
+            console.log(e)
+        }
+
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

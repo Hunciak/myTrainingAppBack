@@ -6,6 +6,7 @@ import {verifyJWT} from "./utils/verifyJWT";
 import {exercisesRouter} from "./routers/exercises.router";
 import {refreshToken} from "./utils/refreshToken";
 import {userRouter} from "./routers/user.router";
+import {calendarRouter} from "./routers/calendar.router";
 
 const express = require('express');
 const cors = require('cors');
@@ -25,11 +26,12 @@ app.use(cors({
 
 app.use('/signin', signInRouter);
 app.use('/signup', signUpRouter);
+
 app.use(refreshToken);
 app.use(verifyJWT);
-
 app.use('/profil', userRouter);
-app.use('/user', exercisesRouter);//poniżej wstawić routes które maja mieć sprawdzane jwt
+app.use('/calendar', calendarRouter);
+app.use('/user', exercisesRouter);
 
 
 app.use(handleError);

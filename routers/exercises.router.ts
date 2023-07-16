@@ -18,8 +18,8 @@ export const exercisesRouter = Router()
     })
 
     .get('/getuserexercisesdetails?:value', async (req, res) => {
-        console.log("co przekazuje", req.query)
         const userId = getIdFromJWT(req.cookies)
+        console.log("cos wysylam?", req.query.value)
         const exerciseName = req.query.value as string
         const getUserExerciseDetails = await UserRecord.getUserExerciseDetails(userId, exerciseName);
         getUserExerciseDetails === null ? res.sendStatus(204) : res.json(getUserExerciseDetails)
